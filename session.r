@@ -68,7 +68,7 @@ extract_and_store_distances <- function(file_name, file_name_suffix, min_word_fr
 
 	cl <- makeCluster(threads)
 	registerDoSNOW(cl)
-	distances <- calculate_all_string_distances(freq_list[freq_list$n >= min_word_frequency, "w"])
+	distances <- calculate_all_string_distances(freq_list[freq_list$n >= min_word_freq, "w"])
 	stopCluster(cl)
 
 	distances <- data.frame("A" = distances[,1], "B" = distances[,2], "d" = as.numeric(distances[,3]), stringsAsFactors = FALSE)
