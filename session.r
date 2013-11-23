@@ -23,7 +23,7 @@ word_list_to_word_freq_list <- function(wl,min_len) {
 	fl
 }
 
-calculate_all_string_distances <- function(wl) {
+calculate_all_string_distances <- function(wl, dist_type, qgram = 2) {
 	g <- expand.grid(1:length(wl),1:length(wl))
 	g <- as.matrix(g[g[,1] < g[,2],])
 	
@@ -40,7 +40,7 @@ calculate_all_string_distances <- function(wl) {
 				res[idx, 1] <- wl[g[j,1]]
 				res[idx, 2] <- wl[g[j,2]]
 				
-				res[idx, 3] <- stringdist(wl[g[j,1]],wl[g[j,2]],method="lv")
+				res[idx, 3] <- stringdist(wl[g[j,1]],wl[g[j,2]],method=dist_type,q=qgram)
 			}
 			
 			res
@@ -61,14 +61,14 @@ create_edge_list_file_for_gephi <- function(file_name, edges, max_dist) {
 	write.table(edges[edges$Weight <= max_dist,] ,file_name,sep=",",row.names=FALSE)
 }
 
-extract_and_store_distances <- function(file_name, file_name_suffix, min_word_freq, min_word_length, max_dist_gephi, threads) {
+extract_and_store_distances <- function(dist_type, qgram, file_name, file_name_suffix, min_word_freq, min_word_length, max_dist_gephi, threads) {
 	t <- readChar(file_name, file.info(file_name)$size)
 	word_list <- text_to_word_list(t)
 	freq_list <- word_list_to_word_freq_list(word_list, min_word_length)
 
 	cl <- makeCluster(threads)
 	registerDoSNOW(cl)
-	distances <- calculate_all_string_distances(freq_list[freq_list$n >= min_word_freq, "w"])
+	distances <- calculate_all_string_distances(freq_list[freq_list$n >= min_word_freq, "w"], dist_type, qgram)
 	stopCluster(cl)
 
 	distances <- data.frame("A" = distances[,1], "B" = distances[,2], "d" = as.numeric(distances[,3]), stringsAsFactors = FALSE)
@@ -79,4 +79,4 @@ extract_and_store_distances <- function(file_name, file_name_suffix, min_word_fr
 	create_edge_list_file_for_gephi(fn, distances, max_dist_gephi)
 }
 
-extract_and_store_distances("texts\\moby-dick\\moby-dick.txt","lv",3,1,8)
+extract_and_store_distances("cosine",3,"texts\\moby-dick\\moby-dick.txt","moby_min3_cos3",3,3,1,8)
