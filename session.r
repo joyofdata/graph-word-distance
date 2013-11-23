@@ -72,10 +72,10 @@ extract_and_store_distances <- function(file_name, file_name_suffix, min_word_fr
 	stopCluster(cl)
 
 	distances <- data.frame("A" = distances[,1], "B" = distances[,2], "d" = as.numeric(distances[,3]), stringsAsFactors = FALSE)
-	fn <- paste("full_distances","_",file_name_suffix,".csv")
-	write.table(distances ,"distances.csv",sep=",",row.names=FALSE)
+	fn <- paste("full_distances","_",file_name_suffix,".csv",sep="")
+	write.table(distances ,fn, sep=",",row.names=FALSE)
 
-	fn <- paste("gephi_distances","_",file_name_suffix,".csv")
+	fn <- paste("gephi_distances","_",file_name_suffix,".csv",sep="")
 	create_edge_list_file_for_gephi(fn, distances, max_dist_gephi)
 }
 
