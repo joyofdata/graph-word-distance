@@ -61,20 +61,22 @@ create_edge_list_file_for_gephi <- function(file_name, edges, max_dist) {
 	write.table(edges[edges$Weight <= max_dist,] ,file_name,sep=",",row.names=FALSE)
 }
 
-file <- "texts\\moby-dick\\moby-dick.txt"
-#file <- "test.txt"
-t <- readChar(file, file.info(file)$size)
-word_list <- text_to_word_list(t)
-freq_list <- word_list_to_word_freq_list(word_list)
+extract_and_store_distances <- function(file_name, file_name_suffix, min_word_freq, max_dist_gephi, threads) {
+	t <- readChar(file_name, file.info(file_name)$size)
+	word_list <- text_to_word_list(t)
+	freq_list <- word_list_to_word_freq_list(word_list)
 
-min_num_of_frequency <- 5
+	cl <- makeCluster(threads)
+	registerDoSNOW(cl)
+	distances <- calculate_all_string_distances(freq_list[freq_list$n >= min_word_frequency, "w"])
+	stopCluster(cl)
 
-cl <- makeCluster(8)
-registerDoSNOW(cl)
-distances <- calculate_all_string_distances(freq_list[freq_list$n >= min_num_of_frequency, "w"])
-stopCluster(cl)
+	distances <- data.frame("A" = distances[,1], "B" = distances[,2], "d" = as.numeric(distances[,3]), stringsAsFactors = FALSE)
+	fn <- paste("full_distances","_",file_name_suffix,".csv")
+	write.table(distances ,"distances.csv",sep=",",row.names=FALSE)
 
-distances <- data.frame("A" = distances[,1], "B" = distances[,2], "d" = as.numeric(distances[,3]), stringsAsFactors = FALSE)
-write.table(distances ,"distances.csv",sep=",",row.names=FALSE)
+	fn <- paste("gephi_distances","_",file_name_suffix,".csv")
+	create_edge_list_file_for_gephi(fn, distances, max_dist_gephi)
+}
 
-create_edge_list_file_for_gephi("distances.csv", distances, 2)
+extract_and_store_distances("texts\\moby-dick\\moby-dick.txt","lv",3,1,8)
