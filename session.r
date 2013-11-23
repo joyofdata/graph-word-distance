@@ -17,9 +17,9 @@ text_to_word_list <- function(t) {
 	tv
 }
 
-word_list_to_word_freq_list <- function(wl) {
+word_list_to_word_freq_list <- function(wl,min_len) {
 	wl <- data.frame(w = wl, stringsAsFactors = FALSE)
-	fl <- sqldf("select w, count(*) as n from wl group by w order by n desc");
+	fl <- sqldf(paste("select w, count(*) as n from wl where length(w) >= ",min_len," group by w order by n desc", sep=""));
 	fl
 }
 
@@ -61,10 +61,10 @@ create_edge_list_file_for_gephi <- function(file_name, edges, max_dist) {
 	write.table(edges[edges$Weight <= max_dist,] ,file_name,sep=",",row.names=FALSE)
 }
 
-extract_and_store_distances <- function(file_name, file_name_suffix, min_word_freq, max_dist_gephi, threads) {
+extract_and_store_distances <- function(file_name, file_name_suffix, min_word_freq, min_word_length, max_dist_gephi, threads) {
 	t <- readChar(file_name, file.info(file_name)$size)
 	word_list <- text_to_word_list(t)
-	freq_list <- word_list_to_word_freq_list(word_list)
+	freq_list <- word_list_to_word_freq_list(word_list, min_word_length)
 
 	cl <- makeCluster(threads)
 	registerDoSNOW(cl)
