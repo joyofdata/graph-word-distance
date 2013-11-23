@@ -1,3 +1,5 @@
+setwd("F:\\git-repos\\graph-word-distance")
+
 rm(list = ls())
 options(scipen=999)
 
@@ -54,8 +56,13 @@ section_sequence <- function(len, part_len) {
 	cbind(a, b)
 }
 
-file <- "F:\\git-repos\\graph-word-distance\\texts\\moby-dick\\moby-dick.txt"
-#file <- "F:\\git-repos\\graph-word-distance\\test.txt"
+create_edge_list_file_for_gephi <- function(file_name, edges, max_dist) {
+	names(edges) <- c("Source","Target","Weight")
+	write.table(edges[edges$Weight <= max_dist,] ,file_name,sep=",",row.names=FALSE)
+}
+
+file <- "texts\\moby-dick\\moby-dick.txt"
+#file <- "test.txt"
 t <- readChar(file, file.info(file)$size)
 word_list <- text_to_word_list(t)
 freq_list <- word_list_to_word_freq_list(word_list)
@@ -66,3 +73,8 @@ cl <- makeCluster(8)
 registerDoSNOW(cl)
 distances <- calculate_all_string_distances(freq_list[freq_list$n >= min_num_of_frequency, "w"])
 stopCluster(cl)
+
+distances <- data.frame("A" = distances[,1], "B" = distances[,2], "d" = as.numeric(distances[,3]), stringsAsFactors = FALSE)
+write.table(distances ,"distances.csv",sep=",",row.names=FALSE)
+
+create_edge_list_file_for_gephi("distances.csv", distances, 2)
