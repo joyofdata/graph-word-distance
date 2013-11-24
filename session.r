@@ -76,7 +76,7 @@ extract_and_store_distances <- function(dist_type, qgram, file_names, file_name_
 	
 	freq_list <- extract_full_freq_list(file_names)
 	fn <- paste("data\\full_freq-list","_",file_name_suffix,".csv",sep="")
-	write.table(distances ,fn, sep=",",row.names=FALSE)
+	write.table(freq_list ,fn, sep=",",row.names=FALSE)
 
 	freq_list_subset <- freq_list[freq_list$n >= min_word_freq & nchar(freq_list$w) >= min_word_length, "w"]
 	
