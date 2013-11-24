@@ -17,9 +17,9 @@ text_to_word_list <- function(t) {
 	tv
 }
 
-word_list_to_word_freq_list <- function(wl,min_len) {
+word_list_to_word_freq_list <- function(wl) {
 	wl <- data.frame(w = wl, stringsAsFactors = FALSE)
-	fl <- sqldf(paste("select w, count(*) as n from wl where length(w) >= ",min_len," group by w order by n desc", sep=""));
+	fl <- sqldf(paste("select w, count(*) as n from wl group by w order by n desc", sep=""));
 	fl
 }
 
@@ -61,22 +61,38 @@ create_edge_list_file_for_gephi <- function(file_name, edges, max_dist) {
 	write.table(edges[edges$Weight <= max_dist,] ,file_name,sep=",",row.names=FALSE)
 }
 
-extract_and_store_distances <- function(dist_type, qgram, file_name, file_name_suffix, min_word_freq, min_word_length, max_dist_gephi, threads) {
-	t <- readChar(file_name, file.info(file_name)$size)
-	word_list <- text_to_word_list(t)
-	freq_list <- word_list_to_word_freq_list(word_list, min_word_length)
+extract_full_freq_list <- function(file_names) {
+	word_list <- c()
+	for(f in file_names) {
+		t <- readChar(f, file.info(f)$size)
+		word_list <- c(word_list, text_to_word_list(t))
+	}
+	
+	freq_list <- word_list_to_word_freq_list(word_list)
+	freq_list
+}
 
+extract_and_store_distances <- function(dist_type, qgram, file_names, file_name_suffix, min_word_freq, min_word_length, max_dist_gephi, threads) {
+	
+	freq_list <- extract_full_freq_list(file_names)
+	fn <- paste("data\\full_freq-list","_",file_name_suffix,".csv",sep="")
+	write.table(distances ,fn, sep=",",row.names=FALSE)
+
+	freq_list_subset <- freq_list[freq_list$n >= min_word_freq & nchar(freq_list$w) >= min_word_length, "w"]
+	
 	cl <- makeCluster(threads)
 	registerDoSNOW(cl)
-	distances <- calculate_all_string_distances(freq_list[freq_list$n >= min_word_freq, "w"], dist_type, qgram)
+	distances <- calculate_all_string_distances(freq_list_subset, dist_type, qgram)
 	stopCluster(cl)
 
 	distances <- data.frame("A" = distances[,1], "B" = distances[,2], "d" = as.numeric(distances[,3]), stringsAsFactors = FALSE)
-	fn <- paste("full_distances","_",file_name_suffix,".csv",sep="")
+	fn <- paste("data\\full_distances","_",file_name_suffix,".csv",sep="")
 	write.table(distances ,fn, sep=",",row.names=FALSE)
 
-	fn <- paste("gephi_distances","_",file_name_suffix,".csv",sep="")
+	fn <- paste("data\\gephi_distances","_",file_name_suffix,".csv",sep="")
 	create_edge_list_file_for_gephi(fn, distances, max_dist_gephi)
 }
 
-extract_and_store_distances("cosine",3,"texts\\moby-dick\\moby-dick.txt","moby_min3_cos3",3,3,1,8)
+vtexts <- c("texts\\moby-dick.txt","texts\\great-expectations.txt","texts\\david-copperfield.txt")
+
+extract_and_store_distances("lv", 0, vtexts, "md-dc-ge_min3_lv", 5, 2, 2, 6)
