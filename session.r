@@ -1,7 +1,13 @@
 setwd("F:\\git-repos\\graph-word-distance")
 
+vtexts <- c("texts\\moby-dick.txt","texts\\great-expectations.txt","texts\\david-copperfield.txt")
+
 rm(list = ls())
 options(scipen=999)
+
+##############################################
+# functions
+##############################################
 
 library(stringr)
 library(sqldf)
@@ -93,6 +99,8 @@ extract_and_store_distances <- function(dist_type, qgram, file_names, file_name_
 	create_edge_list_file_for_gephi(fn, distances, max_dist_gephi)
 }
 
-vtexts <- c("texts\\moby-dick.txt","texts\\great-expectations.txt","texts\\david-copperfield.txt")
+#############################################
+# session
+#############################################
 
 extract_and_store_distances("lv", 0, vtexts, "md-dc-ge_min3_lv", 5, 2, 2, 6)
