@@ -62,11 +62,6 @@ section_sequence <- function(len, part_len) {
 	cbind(a, b)
 }
 
-create_edge_list_file_for_gephi <- function(file_name, edges, max_dist) {
-	names(edges) <- c("Source","Target","Weight")
-	write.table(edges[edges$Weight <= max_dist,] ,file_name,sep=",",row.names=FALSE)
-}
-
 extract_full_freq_list <- function(file_names) {
 	word_list <- c()
 	for(f in file_names) {
@@ -95,12 +90,18 @@ extract_and_store_distances <- function(dist_type, qgram, file_names, file_name_
 	fn <- paste("data\\full_distances","_",file_name_suffix,".csv",sep="")
 	write.table(distances ,fn, sep=",",row.names=FALSE)
 
-	fn <- paste("data\\gephi_distances","_",file_name_suffix,".csv",sep="")
-	create_edge_list_file_for_gephi(fn, distances, max_dist_gephi)
+	distances
 }
 
 #############################################
-# session
+# performing the set up
 #############################################
 
-extract_and_store_distances("lv", 0, vtexts, "md-dc-ge_min3_lv", 5, 2, 2, 6)
+library(igraph)
+
+# this is going to take a while (on a very fast computer)
+d <- extract_and_store_distances("lv", 0, vtexts, "md-dc-ge_min3_lv", 5, 2, 2, 6)
+
+d_sub <- d[d$d == 1 & nchar(d$A) >= 5 & nchar(d$B) >= 5, c("A","B")]
+g <- graph.data.frame(d_sub, directed=F)
+write.graph(g, "word-dist-graph-occ5-len5-lv1.graphml", "graphml")
