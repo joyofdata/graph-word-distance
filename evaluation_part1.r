@@ -13,9 +13,12 @@ g <- read.graph("word-dist-graph-occ5-len5-lv1.graphml", "graphml")
 num_of_vertices <- length(V(g))
 num_of_edges <- length(E(g))
 
-deg_dist <- degree(g)
-
+# ER graph for comparison
 g_ER <- erdos.renyi.game(num_of_vertices, num_of_edges, type = "gnm")
+
+# histogram and data of degree distribution
+
+deg_dist <- degree(g)
 deg_dist_ER <- degree(g_ER)
 
 df <- data.frame(
@@ -23,22 +26,16 @@ df <- data.frame(
 	type <- c(rep('g',length(deg_dist)), rep('ER',length(deg_dist_ER)))
 )
 
-# histogram of degree distribution
 ggplot(data = df, aes(x = deg, fill = factor(type))) + 
 	geom_histogram(binwidth = 1, breaks = 1:10, labels = 1:10, color = I("gray"), position = "dodge") + 
 	scale_x_discrete()
-	
+
+describe(deg_dist)
+describe(deg_dist_ER)	
+
 # words and their degree
 df <- data.frame(w = V(g)$name, deg = degree(g))
 head(df[order(-df$deg),], n=10)
-
-# summary stats	
-describe(deg_dist)
-#  var    n mean   sd median trimmed mad min max range skew kurtosis   se
-# 1   1 3678 1.92 1.43      1    1.61   0   1  13    12 2.36     7.82 0.02
-describe(deg_dist_ER)	
-#  var    n mean   sd median trimmed  mad min max range skew kurtosis   se
-# 1   1 3678 1.92 1.38      2    1.82 1.48   0  10    10 0.77     0.75 0.02
 
 conn_comp <- clusters(g)
 
@@ -81,3 +78,5 @@ cl <- (maximal.cliques(g, min=6))
 lapply(cl,function(i) degree(g, i))
 
 # community detection
+com <- edge.betweenness.community(g, directed=FALSE)
+g_com <- induced.subgraph(g,V(g)[membership(com) == which.max(sizes(com))])
