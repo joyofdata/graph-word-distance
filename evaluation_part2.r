@@ -23,9 +23,3 @@ head(df[order(-df$close),],n=10)
 df <- data.frame(w = V(g)$name, evcent = evcent(g)$vector)
 df <- df[order(-df$evcent),]
 df[1:10,]
-
-# correlations with word length
-cor.test(nchar(V(g)$name), degree(g), method="kendall")
-cor.test(nchar(V(g)$name), betweenness(g), method="kendall")
-cor.test(nchar(V(g)$name), closeness(g), method="kendall")
-cor.test(nchar(V(g)$name), evcent(g)$vector, method="kendall")
