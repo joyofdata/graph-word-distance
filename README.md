@@ -3,7 +3,7 @@ graph-word-distance
 
 Analysis of graph consisting of words linked according to mutual string distance.
 
-[PDF with project details](graph-word-distance/Raffael-Vogler-graph-word-distances.pdf)
+[PDF with project details](Raffael-Vogler-graph-word-distances.pdf)
 
 ![](pics/component-light.png)
 
